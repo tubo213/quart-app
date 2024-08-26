@@ -34,11 +34,17 @@ jobs:
       run: |
         npm install
         npm run build
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        # dist フォルダーのアップロード
+        path: './dist'
 
     # ビルドしたファイルをgh-pagesブランチにデプロイ
     - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
+      uses: actions/deploy-pages@v4
       with:
-        github_token: ${{ secrets.QUART_APP }}  # ここを更新
-        publish_dir: ./build
+        github_token: ${{ secrets.QUART_APP }}
 
