@@ -1,0 +1,39 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main  # またはデプロイしたいブランチ名
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    # Rust setup
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+        override: true
+
+    # wasm-packを使用してWASMをビルド
+    - name: Build wasm
+      run: |
+        cd wasm
+        wasm-pack build --target web
+
+    # Reactのビルド
+    - name: Build React project
+      run: |
+        npm install
+        npm run build
+
+    # ビルドしたファイルをgh-pagesブランチにデプロイ
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./build
