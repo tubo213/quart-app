@@ -1,17 +1,58 @@
 import React, { useEffect, useState } from 'react';
+import './App.css';
 import init, { WebRunner } from '../wasm/pkg/wasm.js';
-import GameBoard from './components/GameBoard';
-import PieceSelection from './components/PieceSelection';
-import PlayControl from './components/PlayControl';
-import Piece from './components/Piece';
 
-const App: React.FC = () => {
+interface PieceProps {
+  color: number;
+  shape: number;
+  height: number;
+  surface: number;
+  isSelected: boolean;
+}
+
+const Piece: React.FC<PieceProps> = ({ color, shape, height, surface, isSelected }) => {
+  const colors = ['blue', 'brown'];
+  const shapes = ['rectangular', 'cylinder'];
+  const adjustedHeight = height === 1 ? '60px' : '35px';
+  const styles: React.CSSProperties = {
+    backgroundColor: colors[color],
+    width: '40px',
+    height: adjustedHeight,
+    borderRadius: shapes[shape] === 'cylinder' ? '50%' : '0%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: '0 auto',
+    position: 'relative',
+    border: isSelected ? '3px solid blue' : 'none',
+  };
+
+  return (
+    <div style={styles}>
+      {surface === 1 && (
+        <div
+          style={{
+            width: '15px',
+            height: '15px',
+            backgroundColor: 'white',
+            borderRadius: '50%',
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+          }}
+        ></div>
+      )}
+    </div>
+  );
+};
+
+const GameComponent: React.FC = () => {
   const [gameState, setGameState] = useState<any>(null);
   const [runner, setRunner] = useState<any>(null);
   const [isGameOver, setIsGameOver] = useState(false);
   const [winner, setWinner] = useState<string | null>(null);
   const [selectedRowCol, setSelectedRowCol] = useState<{ row: number, col: number } | null>(null);
-  const [lastPlacedRowCol, setLastPlacedRowCol] = useState<{ row: number, col: number } | null>(null);
   const [selectedPieceIndex, setSelectedPieceIndex] = useState<number | null>(null);
   const [isPlayerTurn, setIsPlayerTurn] = useState<boolean | null>(null);
   const [isPlayerFirst, setIsPlayerFirst] = useState<boolean>(false);
@@ -65,7 +106,6 @@ const App: React.FC = () => {
       const newStateJson = runner.fetch_game_state();
       const newState = JSON.parse(newStateJson);
       setGameState(newState);
-      setLastPlacedRowCol({ row: action.row, col: action.col });
       setCpuHasPlayed(true);
 
       if (runner.is_game_over()) {
@@ -80,8 +120,10 @@ const App: React.FC = () => {
 
   const handlePlayTurnDisabled = () => {
     if (gameState?.available_pieces.length === 0) {
+      // available_pieces が 0 のときは、selectedRowCol のみで判定
       return selectedRowCol === null || !isPlayerTurn;
     } else {
+      // 通常時は selectedRowCol と selectedPieceIndex の両方で判定
       return selectedRowCol === null || selectedPieceIndex === null || !isPlayerTurn;
     }
   };
@@ -107,7 +149,6 @@ const App: React.FC = () => {
       }
 
       setGameState(newState);
-      setLastPlacedRowCol({ row, col }); // 最後に置かれた位置を保存
       setSelectedRowCol(null);
       setSelectedPieceIndex(null);
 
@@ -125,13 +166,12 @@ const App: React.FC = () => {
 
   const handleReset = () => {
     if (runner) {
-      runner.reset()
+      runner.reset();
       const newState = JSON.parse(runner.fetch_game_state());
       setGameState(newState);
       setIsGameOver(false);
       setWinner(null);
       setSelectedRowCol(null);
-      setLastPlacedRowCol(null);
       setSelectedPieceIndex(null);
       setIsPlayerTurn(null);
       setCpuHasPlayed(false);
@@ -153,36 +193,72 @@ const App: React.FC = () => {
           )}
           {isPlayerTurn !== null && (
             <>
-              <GameBoard
-                gameState={gameState}
-                selectedRowCol={selectedRowCol}
-                lastPlacedRowCol={lastPlacedRowCol}
-                onGridClick={handleGridClick}
-                isPlayerTurn={isPlayerTurn}
-                isGameOver={isGameOver}
-              />
-              <PlayControl
-                handlePlayTurn={handlePlayTurn}
-                handleReset={handleReset}
-                isPlayTurnDisabled={handlePlayTurnDisabled()}
-              />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 80px)', gap: '10px', justifyContent: 'center' }}>
+                {gameState && gameState.board && (
+                  gameState.board.grid.map((row: any[], rowIndex: number) => (
+                    row.map((cell: any, colIndex: number) => (
+                      <button
+                        key={`${rowIndex}-${colIndex}`}
+                        onClick={() => handleGridClick(rowIndex, colIndex)}
+                        disabled={isGameOver || cell !== null || !isPlayerTurn}
+                        style={{
+                          width: '80px',
+                          height: '100px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: selectedRowCol && selectedRowCol.row === rowIndex && selectedRowCol.col === colIndex ? '3px solid blue' : '1px solid #ccc',
+                          backgroundColor: '#f9f9f9',
+                        }}
+                      >
+                        {cell !== null ? (
+                          <Piece {...cell} isSelected={false} />
+                        ) : (
+                          'Empty'
+                        )}
+                      </button>
+                    ))
+                  ))
+                )}
+              </div>
+              <div style={{ marginTop: '20px' }}>
+                <button onClick={handlePlayTurn} disabled={handlePlayTurnDisabled()}>
+                  Play Turn
+                </button>
+                <button onClick={handleReset} style={{ marginLeft: '10px' }}>Reset Game</button>
+              </div>
             </>
           )}
         </div>
         <div>
-          {isPlayerTurn !== null && (
-            <>
-              <PieceSelection
-                gameState={gameState}
-                selectedPieceIndex={selectedPieceIndex}
-                onPieceSelect={handlePieceSelection}
-                isPlayerTurn={isPlayerTurn}
-              />
-              <h3>置く駒</h3>
-              {gameState?.selected_piece && (
-                <Piece {...gameState.selected_piece} isSelected={false} />
-              )}
-            </>
+          {isPlayerTurn !== null && gameState?.available_pieces.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <h3>相手に渡す駒を選んでください</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 60px)', gap: '10px', marginBottom: '20px' }}>
+                {gameState.available_pieces.map((piece: any, index: number) => (
+                  <button
+                    key={index}
+                    onClick={() => handlePieceSelection(index)}
+                    disabled={selectedPieceIndex === index || !isPlayerTurn}
+                    style={{
+                      width: '60px',
+                      height: '80px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: selectedPieceIndex === index ? '3px solid blue' : '1px solid #ccc',
+                      backgroundColor: '#f9f9f9',
+                    }}
+                  >
+                    <Piece {...piece} isSelected={selectedPieceIndex === index} />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          <h3>置く駒</h3>
+          {gameState?.selected_piece && (
+            <Piece {...gameState.selected_piece} isSelected={false} />
           )}
         </div>
       </div>
@@ -190,4 +266,4 @@ const App: React.FC = () => {
   );
 };
 
-export default App;
+export default GameComponent;
