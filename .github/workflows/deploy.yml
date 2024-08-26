@@ -39,6 +39,6 @@ jobs:
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
-        github_token: ${{ secrets.GH_TOKEN }}  # ここを更新
+        github_token: ${{ secrets.QUART_APP }}  # ここを更新
         publish_dir: ./build
 
