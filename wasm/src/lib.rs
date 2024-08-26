@@ -21,24 +21,38 @@ impl WebRunner {
     }
 
     pub fn reset(&mut self) {
-        self.game = Game::new();
-        self.policy = RandomPolicy::new();
+        let new_game = Game::new();
+        let new_policy = RandomPolicy::new();
+
+        self.game = new_game;
+        self.policy = new_policy;
     }
 
     pub fn fetch_policy_action(&mut self) -> String {
         let action = self.policy.action(&self.game);
-        serde_json::to_string(&action).unwrap()
+        serde_json::to_string(&action).unwrap().clone()
     }
 
     pub fn fetch_game_state(&self) -> String {
-        serde_json::to_string(&self.game).unwrap().clone()
+        self.game.to_json()
     }
 
     pub fn fetch_available_piece(&self) -> String {
-        serde_json::to_string(&self.game.available_pieces).unwrap()
+        serde_json::to_string(&self.game.available_pieces)
+            .unwrap()
+            .clone()
     }
 
     pub fn play_turn(&mut self, row: usize, col: usize, piece_index: Option<usize>) {
+        let board_size = self.game.board.grid().len(); // 例: 4x4のボードなら board_size = 4
+        if row >= board_size || col >= board_size {
+            wasm_bindgen::throw_str("Invalid row or column index");
+        }
+        if let Some(index) = piece_index {
+            if index >= self.game.available_pieces.len() {
+                wasm_bindgen::throw_str("Invalid piece index");
+            }
+        }
         if let Err(err) = self.game.play_turn(row, col, piece_index) {
             wasm_bindgen::throw_str(&format!("Error during play_turn: {}", err));
         }
