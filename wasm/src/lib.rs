@@ -39,10 +39,6 @@ impl WebRunner {
     }
 
     pub fn play_turn(&mut self, row: usize, col: usize, piece_index: Option<usize>) {
-        println!(
-            "play_turn: row={}, col={}, piece_index={:?}",
-            row, col, piece_index
-        );
         if let Err(err) = self.game.play_turn(row, col, piece_index) {
             wasm_bindgen::throw_str(&format!("Error during play_turn: {}", err));
         }
