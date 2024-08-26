@@ -5,6 +5,14 @@ on:
     branches:
       - main  # またはデプロイしたいブランチ名
 
+  # Actions タブから手動でワークフローを実行できるようにします
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
