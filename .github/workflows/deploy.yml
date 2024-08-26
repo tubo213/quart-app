@@ -19,6 +19,10 @@ jobs:
         profile: minimal
         override: true
 
+    # wasm-pack をインストール
+    - name: Install wasm-pack
+      uses: jetli/wasm-pack-action@v0.3.0
+
     # wasm-packを使用してWASMをビルド
     - name: Build wasm
       run: |
