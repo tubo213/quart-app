@@ -1,26 +1,38 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import './App.css';
+import init, { initialize_game } from '../wasm/pkg/wasm.js';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [gameState, setGameState] = useState<any>(null);
+
+  const handleClick = async () => {
+    try {
+      await init(); // Wasm モジュールを初期化
+      const gameJson = initialize_game(); // Wasm モジュールが初期化された後で `initialize_game` を呼び出す
+      const gameData = JSON.parse(gameJson); // JSON をオブジェクトに変換
+      console.log("Game state data:", gameData);
+
+      setGameState(gameData); // JSON データを状態に保存
+    } catch (error) {
+      console.error("Error initializing game:", error);
+    }
+  };
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+        <button onClick={handleClick}>
+          Initialize Game
         </button>
+        {gameState && (
+          <div>
+            <p>Current Player: {gameState.current_player}</p>
+            <p>Selected Piece: {JSON.stringify(gameState.selected_piece)}</p>
+            <p>Available Pieces: {JSON.stringify(gameState.available_pieces)}</p>
+            <p>Board: {JSON.stringify(gameState.board)}</p>
+          </div>
+        )}
         <p>
           Edit <code>src/App.tsx</code> and save to test HMR
         </p>
@@ -29,7 +41,7 @@ function App() {
         Click on the Vite and React logos to learn more
       </p>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
