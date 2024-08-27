@@ -89,22 +89,11 @@ const App: React.FC = () => {
   const handlePlayTurn = () => {
     if (selectedRowCol && (selectedPieceIndex !== null || gameState?.available_pieces.length === 0) && runner) {
       const { row, col } = selectedRowCol;
-
-      try {
-        runner.play_turn(row, col, selectedPieceIndex);
-      } catch (error) {
-        console.error("Error during play_turn:", error);
-        return;
-      }
+      runner.play_turn(row, col, selectedPieceIndex);
 
       let newState;
-      try {
-        const gameStateJson = runner.fetch_game_state();
-        newState = JSON.parse(gameStateJson);
-      } catch (error) {
-        console.error("Error fetching game state:", error);
-        return;
-      }
+      const gameStateJson = runner.fetch_game_state();
+      newState = JSON.parse(gameStateJson);
 
       setGameState(newState);
       setLastPlacedRowCol({ row, col }); // 最後に置かれた位置を保存
