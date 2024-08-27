@@ -1,13 +1,14 @@
 use quart_engine::game::player::Player;
 use quart_engine::game::Game;
 use quart_engine::policies::policy::Policy;
-use quart_engine::policies::random_policy::RandomPolicy;
+// use quart_engine::policies::random_policy::RandomPolicy;
+use quart_engine::policies::greedy_random_policy::GreedyRandomPolicy;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub struct WebRunner {
     game: Game,
-    policy: RandomPolicy,
+    policy: GreedyRandomPolicy,
 }
 
 #[wasm_bindgen]
@@ -16,13 +17,13 @@ impl WebRunner {
     pub fn new() -> WebRunner {
         WebRunner {
             game: Game::new(),
-            policy: RandomPolicy::new(),
+            policy: GreedyRandomPolicy::new(),
         }
     }
 
     pub fn reset(&mut self) {
         let new_game = Game::new();
-        let new_policy = RandomPolicy::new();
+        let new_policy = GreedyRandomPolicy::new();
 
         self.game = new_game;
         self.policy = new_policy;
