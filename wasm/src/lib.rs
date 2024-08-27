@@ -1,14 +1,13 @@
 use quart_engine::game::player::Player;
 use quart_engine::game::Game;
-use quart_engine::policies::policy::Policy;
-// use quart_engine::policies::random_policy::RandomPolicy;
-use quart_engine::policies::greedy_random_policy::GreedyRandomPolicy;
+use quart_engine::policies::Policy;
+use quart_engine::policies::one_step_look_ahead_policy::OneStepLookAheadPolicy;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub struct WebRunner {
     game: Game,
-    policy: GreedyRandomPolicy,
+    policy: OneStepLookAheadPolicy,
 }
 
 #[wasm_bindgen]
@@ -17,19 +16,19 @@ impl WebRunner {
     pub fn new() -> WebRunner {
         WebRunner {
             game: Game::new(),
-            policy: GreedyRandomPolicy::new(),
+            policy: OneStepLookAheadPolicy::new(),
         }
     }
 
     pub fn reset(&mut self) {
         let new_game = Game::new();
-        let new_policy = GreedyRandomPolicy::new();
+        let new_policy = OneStepLookAheadPolicy::new();
 
         self.game = new_game;
         self.policy = new_policy;
     }
 
-    pub fn fetch_policy_action(&mut self) -> String {
+    pub fn fetch_policy_action(&self) -> String {
         let action = self.policy.action(&self.game);
         serde_json::to_string(&action).unwrap().clone()
     }
