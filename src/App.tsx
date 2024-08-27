@@ -61,6 +61,8 @@ const App: React.FC = () => {
     if (runner && !cpuHasPlayed) {
       const actionJson = runner.fetch_policy_action();
       const action = JSON.parse(actionJson);
+      console.log(`Player placed piece at (${action.row}, ${action.col}), piece index: ${action.piece_index}`);
+      console.log('Available pieces:', gameState.available_pieces.length);
       runner.play_turn(action.row, action.col, action.piece_index);
       const newStateJson = runner.fetch_game_state();
       const newState = JSON.parse(newStateJson);

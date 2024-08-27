@@ -28,7 +28,7 @@ impl WebRunner {
         self.policy = new_policy;
     }
 
-    pub fn fetch_policy_action(&mut self) -> String {
+    pub fn fetch_policy_action(&self) -> String {
         let action = self.policy.action(&self.game);
         serde_json::to_string(&action).unwrap().clone()
     }
